@@ -1,34 +1,31 @@
 import { Component, OnInit } from '@angular/core';
-import { Apollo, gql } from 'apollo-angular';
+import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { RouterModule, Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 
-const GET_EMPLOYEES = gql`
-  query GetEmployees {
-    employees {
-      _id
-      firstName
-      lastName
-      email
-      department
-      position
-    }
-  }
-`;
+import { MatTableModule } from '@angular/material/table';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { MatButtonModule } from '@angular/material/button';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatCardModule } from '@angular/material/card';
 
-const DELETE_EMPLOYEE = gql`
-  mutation DeleteEmployee($id: ID!) {
-    deleteEmployee(id: $id) {
-      _id
-    }
-  }
-`;
-
+import { EmployeeService } from '../../services/employee.service';
 
 @Component({
   selector: 'app-employee-list',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [
+    CommonModule,
+    RouterModule,
+    FormsModule,
+    MatTableModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    MatButtonModule,
+    MatCardModule,
+    MatProgressSpinnerModule,
+  ],
   templateUrl: './employee-list.component.html',
 })
 export class EmployeeListComponent implements OnInit {
@@ -36,18 +33,45 @@ export class EmployeeListComponent implements OnInit {
   loading = true;
   error: any;
 
-  constructor(private apollo: Apollo, private router: Router) {}
+  selectedDepartment: string = '';
+  selectedPosition: string = '';
+
+  constructor(private employeeService: EmployeeService, private router: Router) {}
 
   ngOnInit(): void {
-    this.apollo
-      .watchQuery<any>({
-        query: GET_EMPLOYEES,
-      })
-      .valueChanges.subscribe(({ data, loading, error }) => {
-        this.loading = loading;
-        this.employees = data?.employees || [];
-        this.error = error;
-      });
+    this.loading = true;
+    this.employeeService.getEmployees().subscribe({
+      next: (employees) => {
+        this.employees = employees;
+        this.loading = false;
+      },
+      error: (err) => {
+        this.error = err;
+        this.loading = false;
+      },
+    });
+  }
+
+  get filteredEmployees() {
+    return this.employees.filter(emp => {
+      const matchDept = this.selectedDepartment
+        ? emp.department === this.selectedDepartment
+        : true;
+      const matchPos = this.selectedPosition
+        ? emp.position === this.selectedPosition
+        : true;
+      return matchDept && matchPos;
+    });
+  }
+
+  get uniqueDepartments() {
+    const all = this.employees.map(e => e.department);
+    return Array.from(new Set(all));
+  }
+
+  get uniquePositions() {
+    const all = this.employees.map(e => e.position);
+    return Array.from(new Set(all));
   }
 
   viewDetails(id: string) {
@@ -61,29 +85,10 @@ export class EmployeeListComponent implements OnInit {
   deleteEmployee(id: string) {
     const confirmDelete = confirm('Are you sure you want to delete this employee?');
     if (!confirmDelete) return;
-  
-    this.apollo
-      .mutate({
-        mutation: DELETE_EMPLOYEE,
-        variables: { id },
-        update: (cache, { data }) => {
-          const deletedId = (data as any)?.deleteEmployee?._id;
-          const existing: any = cache.readQuery({ query: GET_EMPLOYEES });
-        
-          const updated = existing.employees.filter((e: any) => e._id !== deletedId);
-        
-          cache.writeQuery({
-            query: GET_EMPLOYEES,
-            data: { employees: updated },
-          });
-        },
-      })
-      .subscribe({
-        next: () => {
-          alert('Employee deleted!');
-        },
-        error: (err) => alert('Delete failed: ' + err.message),
-      });
+
+    this.employeeService.deleteEmployee(id).subscribe({
+      next: () => alert('Employee deleted!'),
+      error: (err) => alert('Delete failed: ' + err.message),
+    });
   }
-  
 }

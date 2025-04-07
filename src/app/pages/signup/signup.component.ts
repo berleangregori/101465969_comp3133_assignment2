@@ -1,9 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Apollo } from 'apollo-angular';
-import gql from 'graphql-tag';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-signup',
@@ -16,7 +15,7 @@ export class SignupComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private apollo: Apollo,
+    private authService: AuthService,
     private router: Router
   ) {}
 
@@ -31,25 +30,18 @@ export class SignupComponent implements OnInit {
   signup() {
     if (this.form.invalid) return;
 
-    const SIGNUP_MUTATION = gql`
-      mutation Signup($name: String!, $email: String!, $password: String!) {
-        signup(name: $name, email: $email, password: $password) {
-          id
-        }
-      }
-    `;
+    const { name, email, password } = this.form.value;
 
-    this.apollo
-      .mutate({
-        mutation: SIGNUP_MUTATION,
-        variables: this.form.value,
-      })
-      .subscribe({
-        next: () => {
+    this.authService.signup(name, email, password).subscribe({
+      next: (success) => {
+        if (success) {
           alert('Signup successful!');
           this.router.navigate(['/login']);
-        },
-        error: (err) => alert('Signup failed: ' + err.message),
-      });
+        } else {
+          alert('Signup failed.');
+        }
+      },
+      error: (err) => alert('Signup failed: ' + err.message),
+    });
   }
 }

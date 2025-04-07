@@ -1,9 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Apollo } from 'apollo-angular';
-import gql from 'graphql-tag';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -16,7 +15,7 @@ export class LoginComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private apollo: Apollo,
+    private authService: AuthService,
     private router: Router
   ) {}
 
@@ -30,28 +29,18 @@ export class LoginComponent implements OnInit {
   login() {
     if (this.form.invalid) return;
 
-    const LOGIN_MUTATION = gql`
-      mutation Login($email: String!, $password: String!) {
-        login(email: $email, password: $password) {
-          token
-        }
-      }
-    `;
+    const { email, password } = this.form.value;
 
-    this.apollo
-      .mutate({
-        mutation: LOGIN_MUTATION,
-        variables: this.form.value,
-      })
-      .subscribe({
-        next: (result: any) => {
-          const token = result?.data?.login?.token;
-          if (token) {
-            localStorage.setItem('token', token);
-            this.router.navigate(['/employees']);
-          }
-        },
-        error: (err) => alert('Login failed: ' + err.message),
-      });
+    this.authService.login(email, password).subscribe({
+      next: (token) => {
+        if (token) {
+          localStorage.setItem('token', token);
+          this.router.navigate(['/employees']);
+        } else {
+          alert('Login failed. No token returned.');
+        }
+      },
+      error: (err) => alert('Login failed: ' + err.message),
+    });
   }
 }

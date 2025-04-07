@@ -4,6 +4,11 @@ import { Apollo, gql } from 'apollo-angular';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+
 const ADD_EMPLOYEE = gql`
   mutation AddEmployee(
     $firstName: String!
@@ -29,7 +34,14 @@ const ADD_EMPLOYEE = gql`
 @Component({
   selector: 'app-add-employee',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatCardModule,
+  ],
   templateUrl: './add-employee.component.html',
 })
 export class AddEmployeeComponent implements OnInit {
@@ -45,7 +57,6 @@ export class AddEmployeeComponent implements OnInit {
       email: ['', [Validators.required, Validators.email]],
       department: ['', Validators.required],
       position: ['', Validators.required],
-      profilePicture: [null],
     });
   }
 
@@ -56,16 +67,14 @@ export class AddEmployeeComponent implements OnInit {
   submit() {
     if (this.form.invalid || !this.selectedFile) return;
 
-    const formValues = this.form.value;
-
     this.apollo.mutate({
       mutation: ADD_EMPLOYEE,
       variables: {
-        ...formValues,
+        ...this.form.value,
         profilePicture: this.selectedFile,
       },
       context: {
-        useMultipart: true, 
+        useMultipart: true,
       },
     }).subscribe({
       next: () => {

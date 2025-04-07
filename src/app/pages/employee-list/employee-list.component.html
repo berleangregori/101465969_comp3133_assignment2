@@ -1,29 +1,64 @@
-<h2>Employee List</h2>
-
-<div *ngIf="loading">Loading employees...</div>
-<div *ngIf="error">Error: {{ error.message }}</div>
-
-<table *ngIf="!loading && !error">
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>Email</th>
-      <th>Department</th>
-      <th>Position</th>
-      <th>Actions</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr *ngFor="let emp of employees">
-      <td>{{ emp.firstName }} {{ emp.lastName }}</td>
-      <td>{{ emp.email }}</td>
-      <td>{{ emp.department }}</td>
-      <td>{{ emp.position }}</td>
-      <td>
-        <button (click)="viewDetails(emp._id)">View</button>
-        <button (click)="editEmployee(emp._id)">Edit</button>
-        <button (click)="deleteEmployee(emp._id)">Delete</button>
-      </td>
-    </tr>
-  </tbody>
-</table>
+<mat-card>
+    <h2>Employee List</h2>
+  
+    <div class="filters" style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+      <mat-form-field appearance="outline">
+        <mat-label>Filter by Department</mat-label>
+        <mat-select [(ngModel)]="selectedDepartment">
+          <mat-option value="">All</mat-option>
+          <mat-option *ngFor="let dept of uniqueDepartments" [value]="dept">
+            {{ dept }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+  
+      <mat-form-field appearance="outline">
+        <mat-label>Filter by Position</mat-label>
+        <mat-select [(ngModel)]="selectedPosition">
+          <mat-option value="">All</mat-option>
+          <mat-option *ngFor="let pos of uniquePositions" [value]="pos">
+            {{ pos }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+  
+    <mat-spinner *ngIf="loading"></mat-spinner>
+    <div *ngIf="error">Error: {{ error.message }}</div>
+  
+    <table mat-table [dataSource]="filteredEmployees" class="mat-elevation-z8" *ngIf="!loading && !error">
+  
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef>Name</th>
+        <td mat-cell *matCellDef="let emp">{{ emp.firstName }} {{ emp.lastName }}</td>
+      </ng-container>
+  
+      <ng-container matColumnDef="email">
+        <th mat-header-cell *matHeaderCellDef>Email</th>
+        <td mat-cell *matCellDef="let emp">{{ emp.email }}</td>
+      </ng-container>
+  
+      <ng-container matColumnDef="department">
+        <th mat-header-cell *matHeaderCellDef>Department</th>
+        <td mat-cell *matCellDef="let emp">{{ emp.department }}</td>
+      </ng-container>
+  
+      <ng-container matColumnDef="position">
+        <th mat-header-cell *matHeaderCellDef>Position</th>
+        <td mat-cell *matCellDef="let emp">{{ emp.position }}</td>
+      </ng-container>
+  
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>Actions</th>
+        <td mat-cell *matCellDef="let emp">
+          <button mat-button color="primary" (click)="viewDetails(emp._id)">View</button>
+          <button mat-button color="accent" (click)="editEmployee(emp._id)">Edit</button>
+          <button mat-button color="warn" (click)="deleteEmployee(emp._id)">Delete</button>
+        </td>
+      </ng-container>
+  
+      <tr mat-header-row *matHeaderRowDef="['name', 'email', 'department', 'position', 'actions']"></tr>
+      <tr mat-row *matRowDef="let row; columns: ['name', 'email', 'department', 'position', 'actions'];"></tr>
+    </table>
+  </mat-card>
+  
