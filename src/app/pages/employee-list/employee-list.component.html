@@ -1,0 +1,29 @@
+<h2>Employee List</h2>
+
+<div *ngIf="loading">Loading employees...</div>
+<div *ngIf="error">Error: {{ error.message }}</div>
+
+<table *ngIf="!loading && !error">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Email</th>
+      <th>Department</th>
+      <th>Position</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let emp of employees">
+      <td>{{ emp.firstName }} {{ emp.lastName }}</td>
+      <td>{{ emp.email }}</td>
+      <td>{{ emp.department }}</td>
+      <td>{{ emp.position }}</td>
+      <td>
+        <button (click)="viewDetails(emp._id)">View</button>
+        <button (click)="editEmployee(emp._id)">Edit</button>
+        <button (click)="deleteEmployee(emp._id)">Delete</button>
+      </td>
+    </tr>
+  </tbody>
+</table>
