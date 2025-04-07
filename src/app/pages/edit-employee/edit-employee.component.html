@@ -1,1 +1,22 @@
-<p>edit-employee works!</p>
+<h2>Edit Employee</h2>
+<form [formGroup]="form" (ngSubmit)="submit()">
+  <label>First Name:</label>
+  <input type="text" formControlName="firstName" />
+  <br />
+  <label>Last Name:</label>
+  <input type="text" formControlName="lastName" />
+  <br />
+  <label>Email:</label>
+  <input type="email" formControlName="email" />
+  <br />
+  <label>Department:</label>
+  <input type="text" formControlName="department" />
+  <br />
+  <label>Position:</label>
+  <input type="text" formControlName="position" />
+  <br />
+  <label>Profile Picture:</label>
+  <input type="file" (change)="onFileChange($event)" />
+  <br />
+  <button type="submit" [disabled]="form.invalid">Update</button>
+</form>

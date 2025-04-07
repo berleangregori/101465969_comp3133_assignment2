@@ -16,6 +16,15 @@ const GET_EMPLOYEES = gql`
   }
 `;
 
+const DELETE_EMPLOYEE = gql`
+  mutation DeleteEmployee($id: ID!) {
+    deleteEmployee(id: $id) {
+      _id
+    }
+  }
+`;
+
+
 @Component({
   selector: 'app-employee-list',
   standalone: true,
@@ -50,7 +59,31 @@ export class EmployeeListComponent implements OnInit {
   }
 
   deleteEmployee(id: string) {
-    // TODO: Implement actual delete logic with GraphQL mutation
-    alert(`Delete requested for employee: ${id}`);
+    const confirmDelete = confirm('Are you sure you want to delete this employee?');
+    if (!confirmDelete) return;
+  
+    this.apollo
+      .mutate({
+        mutation: DELETE_EMPLOYEE,
+        variables: { id },
+        update: (cache, { data }) => {
+          const deletedId = (data as any)?.deleteEmployee?._id;
+          const existing: any = cache.readQuery({ query: GET_EMPLOYEES });
+        
+          const updated = existing.employees.filter((e: any) => e._id !== deletedId);
+        
+          cache.writeQuery({
+            query: GET_EMPLOYEES,
+            data: { employees: updated },
+          });
+        },
+      })
+      .subscribe({
+        next: () => {
+          alert('Employee deleted!');
+        },
+        error: (err) => alert('Delete failed: ' + err.message),
+      });
   }
+  
 }
