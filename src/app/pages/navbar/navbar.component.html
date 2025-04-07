@@ -1,1 +1,17 @@
-<p>navbar works!</p>
+<mat-toolbar color="primary" style="padding: 0 20px;">
+    <span>Employee Manager</span>
+    <span style="flex: 1 1 auto;"></span>
+  
+    <a mat-button routerLink="/login" style="color: white; text-decoration: none;">Login</a>
+    <a mat-button routerLink="/signup" style="color: white; text-decoration: none;">Signup</a>
+    <a mat-button routerLink="/employees" style="color: white; text-decoration: none;">Employees</a>
+    <a
+      mat-button
+      (click)="logout()"
+      *ngIf="isLoggedIn()"
+      style="color: white; text-decoration: none;"
+    >
+      Logout
+    </a>
+  </mat-toolbar>
+  
