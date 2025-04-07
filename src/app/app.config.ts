@@ -1,12 +1,12 @@
-import { ApplicationConfig, inject } from '@angular/core';
-import { provideRouter } from '@angular/router';
-import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { provideAnimations } from '@angular/platform-browser/animations';
-
-import { provideApollo } from 'apollo-angular';
 import { HttpLink } from 'apollo-angular/http';
 import { InMemoryCache, ApolloLink } from '@apollo/client/core';
 import { setContext } from '@apollo/client/link/context';
+
+import { ApplicationConfig, inject } from '@angular/core';
+import { provideApollo } from 'apollo-angular';
+import { provideRouter } from '@angular/router';
+import { provideAnimations } from '@angular/platform-browser/animations';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 
 import { routes } from './app.routes';
 
@@ -20,7 +20,6 @@ export const appConfig: ApplicationConfig = {
 
     provideApollo(() => {
       const httpLink = inject(HttpLink);
-      const http = httpLink.create({ uri: GRAPHQL_URI });
 
       const auth = setContext(() => {
         const token = localStorage.getItem('token');
@@ -33,7 +32,12 @@ export const appConfig: ApplicationConfig = {
 
       return {
         cache: new InMemoryCache(),
-        link: ApolloLink.from([auth, http]),
+        link: ApolloLink.from([
+          auth,
+          httpLink.create({
+            uri: GRAPHQL_URI,
+          }),
+        ]),
       };
     }),
   ],

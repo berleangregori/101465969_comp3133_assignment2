@@ -1,16 +1,18 @@
 import { Component, OnInit } from '@angular/core';
-import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
 import { MatTableModule } from '@angular/material/table';
+import { MatCardModule } from '@angular/material/card';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatCardModule } from '@angular/material/card';
 
 import { EmployeeService } from '../../services/employee.service';
+import { Employee } from '../../models/employee.model';
 
 @Component({
   selector: 'app-employee-list',
@@ -20,75 +22,52 @@ import { EmployeeService } from '../../services/employee.service';
     RouterModule,
     FormsModule,
     MatTableModule,
+    MatCardModule,
+    MatToolbarModule,
+    MatProgressSpinnerModule,
     MatFormFieldModule,
     MatSelectModule,
-    MatButtonModule,
-    MatCardModule,
-    MatProgressSpinnerModule,
+    MatButtonModule
   ],
-  templateUrl: './employee-list.component.html',
+  templateUrl: './employee-list.component.html'
 })
 export class EmployeeListComponent implements OnInit {
-  employees: any[] = [];
-  loading = true;
-  error: any;
+  employees: Employee[] = [];
+  filteredEmployees: Employee[] = [];
+  displayedColumns: string[] = ['firstName', 'lastName', 'email', 'department', 'position'];
 
   selectedDepartment: string = '';
   selectedPosition: string = '';
+  uniqueDepartments: string[] = [];
+  uniquePositions: string[] = [];
 
-  constructor(private employeeService: EmployeeService, private router: Router) {}
+  loading = true;
+
+  constructor(private employeeService: EmployeeService) {}
 
   ngOnInit(): void {
     this.loading = true;
     this.employeeService.getEmployees().subscribe({
-      next: (employees) => {
-        this.employees = employees;
+      next: (result) => {
+        console.log('✅ Employee query result:', result);
+        this.employees = result;
+        this.uniqueDepartments = [...new Set(result.map(e => e.department))];
+        this.uniquePositions = [...new Set(result.map(e => e.position))];
+        this.applyFilters();
         this.loading = false;
       },
       error: (err) => {
-        this.error = err;
+        console.error('❌ Employee query error:', err);
         this.loading = false;
-      },
+      }
     });
   }
 
-  get filteredEmployees() {
-    return this.employees.filter(emp => {
-      const matchDept = this.selectedDepartment
-        ? emp.department === this.selectedDepartment
-        : true;
-      const matchPos = this.selectedPosition
-        ? emp.position === this.selectedPosition
-        : true;
-      return matchDept && matchPos;
-    });
-  }
-
-  get uniqueDepartments() {
-    const all = this.employees.map(e => e.department);
-    return Array.from(new Set(all));
-  }
-
-  get uniquePositions() {
-    const all = this.employees.map(e => e.position);
-    return Array.from(new Set(all));
-  }
-
-  viewDetails(id: string) {
-    this.router.navigate(['/employee', id]);
-  }
-
-  editEmployee(id: string) {
-    this.router.navigate(['/edit-employee', id]);
-  }
-
-  deleteEmployee(id: string) {
-    const confirmDelete = confirm('Are you sure you want to delete this employee?');
-    if (!confirmDelete) return;
-
-    this.employeeService.deleteEmployee(id).subscribe({
-      next: () => alert('Employee deleted!'),
-      error: (err) => alert('Delete failed: ' + err.message),
+  applyFilters(): void {
+    this.filteredEmployees = this.employees.filter(emp => {
+      const matchesDept = this.selectedDepartment ? emp.department === this.selectedDepartment : true;
+      const matchesPos = this.selectedPosition ? emp.position === this.selectedPosition : true;
+      return matchesDept && matchesPos;
     });
   }
 }
